@@ -8,6 +8,7 @@
     "hono": "^2.1.0"
   },
   "devDependencies": {
+    "@types/react": "^18.0.17",
     "frankee-deployctl": "workspace:*"
   },
   "franke": {

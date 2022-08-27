@@ -1,18 +1,12 @@
-import {
-  EdgeRuntime,
-  runServer,
-} from 'edge-runtime'
-import {
-  ListObjectsV2Command,
-  GetObjectCommand,
-} from '@aws-sdk/client-s3'
+import { EdgeRuntime } from 'edge-runtime'
+import { GetObjectCommand } from '@aws-sdk/client-s3'
 import { Readable } from 'stream'
 import s3 from '@/s3'
 import prisma from '@/prisma'
-import { DispatchFetch } from 'edge-runtime/dist/types'
 import { FastifyRequest } from 'fastify'
 import { getClonableBodyStream } from 'edge-runtime/dist/server/body-streams'
 import { IncomingMessage } from 'http'
+import { createClient } from 'redis'
 
 const vms = new Map<string, EdgeRuntime>()
 
@@ -23,6 +17,16 @@ const streamToString = (stream: Readable) =>
     stream.on('error', reject)
     stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')))
   })
+
+const createRuntime = (code: string) => {
+  return new EdgeRuntime({
+    initialCode: code,
+    extend: context => {
+      context.Redis = createClient({ url: process.env.REDIS_URL })
+      return context
+    },
+  })
+}
 
 export async function initializeFunctions() {
   const functions = await prisma.function.findMany()
@@ -37,7 +41,7 @@ export async function initializeFunctions() {
 
     const code = await streamToString(content.Body as Readable)
 
-    vms.set(func.domain, new EdgeRuntime({ initialCode: code }))
+    vms.set(func.domain, createRuntime(code))
   }
 }
 
@@ -61,7 +65,7 @@ export async function deployFunction(id: string) {
 
   const code = await streamToString(content.Body as Readable)
 
-  vms.set(func.domain, new EdgeRuntime({ initialCode: code }))
+  vms.set(func.domain, createRuntime(code))
 }
 
 export async function dispatchFetch(req: FastifyRequest) {

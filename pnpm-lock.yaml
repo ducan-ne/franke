@@ -7,11 +7,13 @@ importers:
 
   examples/hono:
     specifiers:
+      '@types/react': ^18.0.17
       frankee-deployctl: workspace:*
       hono: ^2.1.0
     dependencies:
       hono: 2.1.0
     devDependencies:
+      '@types/react': 18.0.17
       frankee-deployctl: link:../../packages/deployctl
 
   examples/nextjs-edge:
@@ -159,6 +161,7 @@ importers:
       edge-runtime: 1.1.0-beta.31
       fastify: 4.5.3
       prisma: ^4.2.1
+      redis: ^4.3.0
       tsup: 6.2.3
       tsx: 3.8.2
     dependencies:
@@ -170,6 +173,7 @@ importers:
       dotenv: 16.0.1
       edge-runtime: 1.1.0-beta.31
       fastify: 4.5.3
+      redis: 4.3.0
     devDependencies:
       '@types/node': 18.7.13
       prisma: 4.2.1
@@ -2818,6 +2822,55 @@ packages:
     resolution: { integrity: sha512-0KqBwREUOjBiHwITsQzw2DWfLHjntvbqzGRawj4sBMnIiL5CXwyDUKeHOwXzKMtNr1rEjxEsypM14g0CzLRK3g== }
     requiresBuild: true
 
+  /@redis/bloom/1.0.2_@redis+client@1.3.0:
+    resolution: { integrity: sha512-EBw7Ag1hPgFzdznK2PBblc1kdlj5B5Cw3XwI9/oG7tSn85/HKy3X9xHy/8tm/eNXJYHLXHJL/pkwBpFMVVefkw== }
+    peerDependencies:
+      '@redis/client': ^1.0.0
+    dependencies:
+      '@redis/client': 1.3.0
+    dev: false
+
+  /@redis/client/1.3.0:
+    resolution: { integrity: sha512-XCFV60nloXAefDsPnYMjHGtvbtHR8fV5Om8cQ0JYqTNbWcQo/4AryzJ2luRj4blveWazRK/j40gES8M7Cp6cfQ== }
+    engines: { node: '>=14' }
+    dependencies:
+      cluster-key-slot: 1.1.0
+      generic-pool: 3.8.2
+      yallist: 4.0.0
+    dev: false
+
+  /@redis/graph/1.0.1_@redis+client@1.3.0:
+    resolution: { integrity: sha512-oDE4myMCJOCVKYMygEMWuriBgqlS5FqdWerikMoJxzmmTUErnTRRgmIDa2VcgytACZMFqpAOWDzops4DOlnkfQ== }
+    peerDependencies:
+      '@redis/client': ^1.0.0
+    dependencies:
+      '@redis/client': 1.3.0
+    dev: false
+
+  /@redis/json/1.0.3_@redis+client@1.3.0:
+    resolution: { integrity: sha512-4X0Qv0BzD9Zlb0edkUoau5c1bInWSICqXAGrpwEltkncUwcxJIGEcVryZhLgb0p/3PkKaLIWkjhHRtLe9yiA7Q== }
+    peerDependencies:
+      '@redis/client': ^1.0.0
+    dependencies:
+      '@redis/client': 1.3.0
+    dev: false
+
+  /@redis/search/1.1.0_@redis+client@1.3.0:
+    resolution: { integrity: sha512-NyFZEVnxIJEybpy+YskjgOJRNsfTYqaPbK/Buv6W2kmFNaRk85JiqjJZA5QkRmWvGbyQYwoO5QfDi2wHskKrQQ== }
+    peerDependencies:
+      '@redis/client': ^1.0.0
+    dependencies:
+      '@redis/client': 1.3.0
+    dev: false
+
+  /@redis/time-series/1.0.3_@redis+client@1.3.0:
+    resolution: { integrity: sha512-OFp0q4SGrTH0Mruf6oFsHGea58u8vS/iI5+NpYdicaM+7BgqBZH8FFvNZ8rYYLrUO/QRqMq72NpXmxLVNcdmjA== }
+    peerDependencies:
+      '@redis/client': ^1.0.0
+    dependencies:
+      '@redis/client': 1.3.0
+    dev: false
+
   /@remix-run/cloudflare-workers/1.7.0_biqbaboplfbrettd7655fr4n2y:
     resolution: { integrity: sha512-qHHy2cMegau9EVTbDEbHV3xOHRIkZ6GtIzBGiTozQCPWqwP6PTWlUECcNg/pijJpeHHSYo6L121Wy7aMU1grxA== }
     engines: { node: '>=14' }
@@ -3806,7 +3859,7 @@ packages:
   /axios/0.27.2:
     resolution: { integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ== }
     dependencies:
-      follow-redirects: 1.15.1_debug@4.3.2
+      follow-redirects: 1.15.1
       form-data: 4.0.0
     transitivePeerDependencies:
       - debug
@@ -4314,6 +4367,11 @@ packages:
     engines: { node: '>=0.8' }
     dev: true
 
+  /cluster-key-slot/1.1.0:
+    resolution: { integrity: sha512-2Nii8p3RwAPiFwsnZvukotvow2rIHM+yQ6ZcBXGHdniadkYGZYiGmkHJIbZPIV9nfv7m/U1IPMVVcAhoWFeklw== }
+    engines: { node: '>=0.10.0' }
+    dev: false
+
   /collection-visit/1.0.0:
     resolution: { integrity: sha512-lNkKvzEeMBBjUGHZ+q6z9pSJla0KWAQPvtzhEV9+iGyQYG+pBpl7xKDhxoNSOZH2hhv0v5k0y2yAM4o4SjoSkw== }
     engines: { node: '>=0.10.0' }
@@ -4655,6 +4713,7 @@ packages:
         optional: true
     dependencies:
       ms: 2.1.2
+    dev: true
 
   /debug/4.3.4:
     resolution: { integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ== }
@@ -6290,6 +6349,16 @@ packages:
     engines: { node: '>=0.4.0' }
     dev: true
 
+  /follow-redirects/1.15.1:
+    resolution: { integrity: sha512-yLAMQs+k0b2m7cVxpS1VKJVvoz7SS9Td1zss3XRwXj+ZDH00RJgnuLx7E44wx02kQLrdM3aOOy+FpzS7+8OizA== }
+    engines: { node: '>=4.0' }
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+    dev: false
+
   /follow-redirects/1.15.1_debug@4.3.2:
     resolution: { integrity: sha512-yLAMQs+k0b2m7cVxpS1VKJVvoz7SS9Td1zss3XRwXj+ZDH00RJgnuLx7E44wx02kQLrdM3aOOy+FpzS7+8OizA== }
     engines: { node: '>=4.0' }
@@ -6300,6 +6369,7 @@ packages:
         optional: true
     dependencies:
       debug: 4.3.2
+    dev: true
 
   /for-in/1.0.2:
     resolution: { integrity: sha512-7EwmXrOjyL+ChxMhmG5lnW9MPt1aIeZEwKhQzoBUdTV0N3zuwWDZYVJatDvZ2OyzPUvdIAZDsCetk3coyMfcnQ== }
@@ -6426,6 +6496,11 @@ packages:
   /functions-have-names/1.2.3:
     resolution: { integrity: sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ== }
     dev: true
+
+  /generic-pool/3.8.2:
+    resolution: { integrity: sha512-nGToKy6p3PAbYQ7p1UlWl6vSPwfwU6TMSWK7TTu+WUY4ZjyZQGniGGt2oNVvyNSpyZYSB43zMXVLcBm08MTMkg== }
+    engines: { node: '>= 4' }
+    dev: false
 
   /gensync/1.0.0-beta.2:
     resolution: { integrity: sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg== }
@@ -9202,6 +9277,17 @@ packages:
       source-map: 0.6.1
       tslib: 2.4.0
     dev: true
+
+  /redis/4.3.0:
+    resolution: { integrity: sha512-RXRUor0iU1vizu4viHoUyLpe1ZO/RngZp0V9DyXBHTI+7tC7rEz6Wzn4Sv9v0tTJeqGAzdJ+q5YVbNKKQ5hX9A== }
+    dependencies:
+      '@redis/bloom': 1.0.2_@redis+client@1.3.0
+      '@redis/client': 1.3.0
+      '@redis/graph': 1.0.1_@redis+client@1.3.0
+      '@redis/json': 1.0.3_@redis+client@1.3.0
+      '@redis/search': 1.1.0_@redis+client@1.3.0
+      '@redis/time-series': 1.0.3_@redis+client@1.3.0
+    dev: false
 
   /regenerate-unicode-properties/10.0.1:
     resolution: { integrity: sha512-vn5DU6yg6h8hP/2OkQo3K7uVILvY4iu0oI4t3HFa81UPkhGJwkRwM10JEc3upjdhHjs/k8GJY1sRBhk5sr69Bw== }
