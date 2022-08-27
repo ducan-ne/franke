@@ -8,7 +8,8 @@ import {
   teardownFunction,
 } from '@/vm'
 import { NodeHeaders } from 'edge-runtime/dist/types'
-import * as repl from 'repl'
+import { Traefik } from '@/types'
+import axios from 'axios'
 
 const app = Fastify({})
 
@@ -115,12 +116,72 @@ app.register((api, opts, next) => {
     reply.send(records)
   })
 
-  api.get('/traefik', async(req, reply) => {
+  next()
+}, { prefix: 'edge-api' })
 
+app.get('/_webhooks/traefik', async(req, reply) => {
+  const merge = { routers: {}, services: {} }
+
+  if (process.env.TRAEFIK_MERGE) {
+    const { data } = await axios.get(process.env.TRAEFIK_MERGE)
+    merge.routers = data.http.routers
+    merge.services = data.http.services
+  }
+
+  const traefik: Traefik = {
+    http: {
+      routers: merge.routers,
+      services: merge.services,
+      middlewares: {
+        'redirect-to-https': {
+          redirectscheme: {
+            scheme: 'https',
+          },
+        },
+        'redirect-to-http': {
+          redirectscheme: {
+            scheme: 'http',
+          },
+        },
+        'redirect-to-non-www': {
+          redirectregex: {
+            regex: '^https?://www\\.(.+)',
+            replacement: 'http://${1}',
+          },
+        },
+        'redirect-to-www': {
+          redirectregex: {
+            regex: '^https?://(?:www\\.)?(.+)',
+            replacement: 'http://www.${1}',
+          },
+        },
+      },
+    },
+  }
+
+  const functions = await prisma.function.findMany()
+
+  functions.forEach((func) => {
+    traefik.http.routers[func.name] = {
+      entrypoints: ['web'],
+      rule: `Host(\`${func.domain}\`)`,
+      service: `${func.name}`,
+      middlewares: ['redirect-to-https'],
+    }
+
+    traefik.http.services[func.name] = {
+      loadbalancer: {
+        servers: [
+          {
+            url: process.env.TRAEFIK_TARGET,
+          },
+        ],
+      },
+    }
   })
 
-  next()
-}, { prefix: 'api' })
+  reply.send(traefik)
+})
 
 app.all('/*', async(req, reply) => {
   try {

@@ -77,7 +77,7 @@ cli
       console.log('Domain', domain)
       console.log('Function size: ', prettyBytes(Buffer.byteLength(code)))
 
-      await getApi().post('api/deploy', {
+      await getApi().post('edge-api/deploy', {
         code: code,
         name: functionName,
         domain: domain,
@@ -118,7 +118,7 @@ cli
 
     try {
 
-      await getApi().post(`api/stop/${functionName}`, {})
+      await getApi().post(`edge-api/stop/${functionName}`, {})
       console.log(`Stopped function ${functionName}`)
     } catch (e) {
       console.log(e)
@@ -131,7 +131,7 @@ cli
   .action(async() => {
     try {
 
-      const { data } = await getApi().get('api/functions')
+      const { data } = await getApi().get('edge-api/functions')
       console.log(JSON.stringify(data, null, 2))
     } catch (e) {
       console.log(e)
