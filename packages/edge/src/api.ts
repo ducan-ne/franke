@@ -1,0 +1,164 @@
+import Fastify from 'fastify'
+import s3 from '@/s3'
+import { PutObjectCommand } from '@aws-sdk/client-s3'
+import prisma from '@/prisma'
+import {
+  deployFunction,
+  dispatchFetch,
+  teardownFunction,
+} from '@/vm'
+import { NodeHeaders } from 'edge-runtime/dist/types'
+
+const app = Fastify({})
+
+app.addContentTypeParser('application/json', { parseAs: 'string' }, function(req, body, done) {
+  try {
+    var json = JSON.parse(body as string)
+    done(null, json)
+  } catch (err: any) {
+    err.statusCode = 400
+    done(err, undefined)
+  }
+})
+
+app.register((api, opts, next) => {
+
+  api.addHook('onRequest', function(request, reply, done) {
+    if (!request.headers.token || request.headers.token !== process.env.TOKEN) {
+      reply.status(403)
+      return reply.send({ unauthorized: true })
+    }
+
+    done()
+  })
+
+  api.post<{
+    Body: { name: string, code: string, assets: Array<{ content: string, name: string }>, domain: string },
+  }>('/deploy', async(req, res) => {
+    const { name, code, assets, domain } = req.body
+
+    const func = await prisma.function.upsert({
+      where: {
+        name,
+      },
+      update: {
+        domain,
+        assets: {
+          createMany: {
+            data: assets.map(({ name }) => ({
+              name: name,
+            })),
+          },
+        },
+      },
+      create: {
+        name,
+        domain,
+        assets: {
+          createMany: {
+            data: assets.map(({ name }) => ({
+              name: name,
+            })),
+          },
+        },
+      },
+      select: {
+        id: true,
+        createdAt: true,
+        updatedAt: true,
+        assets: true,
+      },
+    })
+
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: process.env.S3_BUCKET,
+        Key: `${name}.js`,
+        Body: code,
+      }),
+    )
+
+    for (const asset of assets) {
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: process.env.S3_BUCKET,
+          Key: `${name}/${asset.name}`,
+          Body: asset.content,
+        }),
+      )
+    }
+
+    await deployFunction(func.id)
+
+    res.send({ status: true })
+  })
+
+  api.post<{
+    Params: { id: string }
+  }>('/stop/:id', async(req, reply) => {
+    const func = await prisma.function.findFirstOrThrow({ where: { name: req.params.id } })
+
+    teardownFunction(func.domain)
+
+    await prisma.function.delete({ where: { id: func.id } })
+
+    reply.send({ success: true })
+  })
+
+  api.get('/functions', async(req, reply) => {
+    const records = await prisma.function.findMany()
+    reply.send(records)
+  })
+
+  next()
+}, { prefix: 'api' })
+
+app.all('/*', async(req, reply) => {
+  if (req.url === '/favicon.ico') {
+    reply.code(204)
+    return
+  }
+
+  const response = await dispatchFetch(req)
+
+  if (!response) {
+    reply.code(404)
+    reply.send({ message: 'Deployment not found' })
+    return
+  }
+
+  await response.waitUntil()
+
+  reply.status(response.status)
+  reply.raw.statusMessage = response.statusText
+
+  for (const [key, value] of Object.entries(
+    toNodeHeaders(response.headers),
+  )) {
+    if (value !== undefined) {
+      reply.raw.setHeader(key, value)
+    }
+  }
+
+  for await (const chunk of response.body as any) {
+    reply.raw.write(chunk)
+  }
+  reply.raw.end()
+})
+
+function toNodeHeaders(headers?: any): NodeHeaders {
+  const result: NodeHeaders = {}
+  if (headers) {
+    for (const [key, value] of headers.entries()) {
+      result[key] =
+        key.toLowerCase() === 'set-cookie'
+          ? // @ts-ignore getAll is hidden in Headers but exists.
+          headers.getAll('set-cookie')
+          : value
+    }
+  }
+  return result
+}
+
+
+export default app

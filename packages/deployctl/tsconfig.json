@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      "@edge-runtime/types"
+    ]
+  },
+  "include": [
+    "src",
+    "example.ts",
+    "cli.d.ts"
+  ]
+}

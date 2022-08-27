@@ -1,0 +1,23 @@
+{
+  "name": "franke-edge",
+  "version": "1.0.0",
+  "scripts": {
+    "generate": "prisma generate",
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.159.0",
+    "@edge-runtime/vm": "1.1.0-beta.31",
+    "@prisma/client": "^4.2.1",
+    "dotenv": "^16.0.1",
+    "edge-runtime": "1.1.0-beta.31",
+    "fastify": "4.5.3",
+    "@edge-runtime/primitives": "1.1.0-beta.31"
+  },
+  "devDependencies": {
+    "@types/node": "18.7.13",
+    "prisma": "^4.2.1",
+    "tsx": "3.8.2"
+  }
+}
