@@ -22,7 +22,10 @@ const createRuntime = (code: string) => {
   return new EdgeRuntime({
     initialCode: code,
     extend: context => {
-      context.Redis = createClient({ url: process.env.REDIS_URL })
+      const redis = createClient({ url: process.env.REDIS_URL })
+      redis.on('error', (err) => console.log('Redis Client Error', err))
+
+      context.Redis = redis
       return context
     },
   })

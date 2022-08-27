@@ -2,14 +2,15 @@
   "name": "hono-example",
   "version": "1.0.0",
   "scripts": {
-    "deploy": "frankee-deployctl deploy index.ts"
+    "deploy": "frankee-deployctl deploy index.tsx"
   },
   "dependencies": {
     "hono": "^2.1.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.17",
-    "frankee-deployctl": "workspace:*"
+    "frankee-deployctl": "workspace:*",
+    "redis": "^4.3.0"
   },
   "franke": {
     "name": "hono-example",
