@@ -6,7 +6,7 @@ RUN apt install -y python3 make g++ openssl
 RUN npm install -g pnpm
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
 
 RUN pnpm install --frozen-lockfile
 
