@@ -14,6 +14,7 @@ COPY packages/deployctl ./packages/deployctl
 
 WORKDIR /app/packages/edge
 RUN pnpm install
+RUN pnpm run build
 RUN pnpm run generate
 
 EXPOSE 4000
