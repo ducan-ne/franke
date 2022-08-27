@@ -169,6 +169,16 @@ app.get('/_webhooks/traefik', async(req, reply) => {
       middlewares: ['redirect-to-https'],
     }
 
+    traefik.http.routers[`${func.name}-secure`] = {
+      entrypoints: ['websecure'],
+      rule: `Host(\`${func.domain}\`)`,
+      service: `${func.name}`,
+      tls: {
+        certresolver: 'letsencrypt',
+      },
+      middlewares: [],
+    }
+
     traefik.http.services[func.name] = {
       loadbalancer: {
         servers: [
