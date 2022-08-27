@@ -8,6 +8,7 @@ import {
   teardownFunction,
 } from '@/vm'
 import { NodeHeaders } from 'edge-runtime/dist/types'
+import * as repl from 'repl'
 
 const app = Fastify({})
 
@@ -112,6 +113,10 @@ app.register((api, opts, next) => {
   api.get('/functions', async(req, reply) => {
     const records = await prisma.function.findMany()
     reply.send(records)
+  })
+
+  api.get('/traefik', async(req, reply) => {
+
   })
 
   next()

@@ -15,7 +15,7 @@ export function buildFunction(entry: string) {
     allowOverwrite: true,
     plugins: [
       {
-        name: 'wrangler notifier and monitor',
+        name: 'notifier and monitor',
         setup(pluginBuild) {
           pluginBuild.onEnd((result) => {
             if (result.errors.length > 0) {
