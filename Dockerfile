@@ -1,7 +1,6 @@
-FROM node:16-slim as builder
+FROM node:16-alpine as builder
 
-RUN apt update
-RUN apt install -y python3 make g++ openssl
+RUN apk add --no-cache libc6-compat
 
 RUN npm install -g pnpm
 WORKDIR /app
