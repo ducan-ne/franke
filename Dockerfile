@@ -13,7 +13,7 @@ RUN pnpm install --frozen-lockfile
 COPY packages/* ./packages/*
 
 WORKDIR /app/packages/edge
-RUN pnpm generate
+RUN pnpm run generate
 
 EXPOSE 4000
 ENV NODE_ENV=production
