@@ -34,63 +34,67 @@ app.register((api, opts, next) => {
 
   api.post<{
     Body: { name: string, code: string, assets: Array<{ content: string, name: string }>, domain: string },
-  }>('/deploy', async(req, res) => {
-    const { name, code, assets, domain } = req.body
+  }>('/deploy', async(req, reply) => {
+    try {
+      const { name, code, assets, domain } = req.body
 
-    const func = await prisma.function.upsert({
-      where: {
-        name,
-      },
-      update: {
-        domain,
-        assets: {
-          createMany: {
-            data: assets.map(({ name }) => ({
-              name: name,
-            })),
+      const func = await prisma.function.upsert({
+        where: {
+          name,
+        },
+        update: {
+          domain,
+          assets: {
+            createMany: {
+              data: assets.map(({ name }) => ({
+                name: name,
+              })),
+            },
           },
         },
-      },
-      create: {
-        name,
-        domain,
-        assets: {
-          createMany: {
-            data: assets.map(({ name }) => ({
-              name: name,
-            })),
+        create: {
+          name,
+          domain,
+          assets: {
+            createMany: {
+              data: assets.map(({ name }) => ({
+                name: name,
+              })),
+            },
           },
         },
-      },
-      select: {
-        id: true,
-        createdAt: true,
-        updatedAt: true,
-        assets: true,
-      },
-    })
+        select: {
+          id: true,
+          createdAt: true,
+          updatedAt: true,
+          assets: true,
+        },
+      })
 
-    await s3.send(
-      new PutObjectCommand({
-        Bucket: process.env.S3_BUCKET,
-        Key: `${name}.js`,
-        Body: code,
-      }),
-    )
-
-    for (const asset of assets) {
       await s3.send(
         new PutObjectCommand({
           Bucket: process.env.S3_BUCKET,
-          Key: `${name}/${asset.name}`,
-          Body: asset.content,
+          Key: `${name}.js`,
+          Body: code,
         }),
       )
+
+      for (const asset of assets) {
+        await s3.send(
+          new PutObjectCommand({
+            Bucket: process.env.S3_BUCKET,
+            Key: `${name}/${asset.name}`,
+            Body: asset.content,
+          }),
+        )
+      }
+      await deployFunction(func.id)
+
+      reply.send({ status: true })
+    } catch (e) {
+      console.log(e)
+      reply.status(500)
     }
-
-    await deployFunction(func.id)
-
-    res.send({ status: true })
   })
 
   api.post<{
@@ -114,36 +118,41 @@ app.register((api, opts, next) => {
 }, { prefix: 'api' })
 
 app.all('/*', async(req, reply) => {
-  if (req.url === '/favicon.ico') {
-    reply.code(204)
-    return
-  }
-
-  const response = await dispatchFetch(req)
-
-  if (!response) {
-    reply.code(404)
-    reply.send({ message: 'Deployment not found' })
-    return
-  }
-
-  await response.waitUntil()
-
-  reply.status(response.status)
-  reply.raw.statusMessage = response.statusText
-
-  for (const [key, value] of Object.entries(
-    toNodeHeaders(response.headers),
-  )) {
-    if (value !== undefined) {
-      reply.raw.setHeader(key, value)
+  try {
+    if (req.url === '/favicon.ico') {
+      reply.code(204)
+      return
     }
-  }
 
-  for await (const chunk of response.body as any) {
-    reply.raw.write(chunk)
+    const response = await dispatchFetch(req)
+
+    if (!response) {
+      reply.code(404)
+      reply.send({ message: 'Deployment not found' })
+      return
+    }
+
+    await response.waitUntil()
+
+    reply.status(response.status)
+    reply.raw.statusMessage = response.statusText
+
+    for (const [key, value] of Object.entries(
+      toNodeHeaders(response.headers),
+    )) {
+      if (value !== undefined) {
+        reply.raw.setHeader(key, value)
+      }
+    }
+
+    for await (const chunk of response.body as any) {
+      reply.raw.write(chunk)
+    }
+    reply.raw.end()
+  } catch (e) {
+    console.log(e)
+    reply.status(500)
   }
-  reply.raw.end()
 })
 
 function toNodeHeaders(headers?: any): NodeHeaders {

@@ -1,0 +1,17 @@
+{
+  "name": "hono-example",
+  "version": "1.0.0",
+  "scripts": {
+    "deploy": "frankee-deployctl deploy index.ts"
+  },
+  "dependencies": {
+    "hono": "^2.1.0"
+  },
+  "devDependencies": {
+    "frankee-deployctl": "workspace:*"
+  },
+  "franke": {
+    "name": "hono-example",
+    "domain": "hono-example.com"
+  }
+}

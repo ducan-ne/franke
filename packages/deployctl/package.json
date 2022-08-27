@@ -1,21 +1,24 @@
 {
   "name": "frankee-deployctl",
   "version": "1.0.0",
-  "bin": "./cli",
+  "type": "module",
+  "bin": "./cli.mjs",
+  "exports": "./dist/index.js",
   "files": [
     "dist/index.js",
     "cli"
   ],
   "scripts": {
-    "build": "tsup ./src/index.ts",
-    "release": "tsup ./src/index.ts && npm version patch && npm publish",
+    "build": "tsup ./src/index.ts --format esm",
+    "watch": "tsup ./src/index.ts --format esm --watch",
+    "release": "tsup ./src/index.ts --format esm && npm version patch && npm publish",
     "start": "tsx ./src/index.ts"
   },
   "dependencies": {
-    "@esbuild-kit/core-utils": "2.3.0",
     "axios": "0.27.2",
     "cac": "6.7.12",
     "conf": "10.2.0",
+    "esbuild": "^0.15.5",
     "is-public-domain": "^2.0.0",
     "pretty-bytes": "^6.0.0",
     "read-pkg-up": "^9.1.0"

@@ -1,21 +1,22 @@
 import cac from 'cac'
 import Conf from 'conf'
 import axios from 'axios'
-import { transform } from '@esbuild-kit/core-utils'
 import path from 'path'
 import { readPackageUp } from 'read-pkg-up'
 import prettyBytes from 'pretty-bytes'
-import * as fs from 'fs'
 import isDomain from 'is-public-domain'
+import { buildFunction } from './buildFunction'
 
 const cli = cac('deployctl')
 
-const conf = new Conf<{ endpoint: string, token: string }>()
+const conf = new Conf<{ endpoint: string, token: string }>({
+  projectName: 'franke-deployctl',
+})
 
 const getApi = () => {
   return axios.create({
     baseURL: conf.get('endpoint') || 'https://franke.graph.vn',
-    headers: { TOKEN: conf.get('token') },
+    headers: { TOKEN: conf.get('token') || '' },
   })
 }
 
@@ -62,22 +63,14 @@ cli
     }
 
     const file = path.resolve(process.cwd(), target || 'index.ts')
-    const fileContent = await fs.promises.readFile(file)
 
-    const { code } = await transform(
-      fileContent.toString(),
-      file,
-      {
-        loader: 'ts',
-        tsconfigRaw: {
-          compilerOptions: {
-            preserveValueImports: true,
-          },
-        },
-        define: {
-          require: 'global.require',
-        },
-      })
+    const { outputFiles } = await buildFunction(file)
+    const code = Buffer.from(outputFiles?.[0].contents.buffer! || '').toString()
+
+    if (!code) {
+      console.log('Can not bundle your entry')
+      return
+    }
 
     try {
       console.log('Deploying function', functionName)
