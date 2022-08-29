@@ -9,12 +9,13 @@ A dead simple serverless functions server, run at the edge.
 - [ ] General Availability
 
 # Features
-- [x] edge single node
+- [x] edge single region
 - [x] support Hono
 - [x] deploy within seconds
 - [x] traefik http provider
-- [ ] deployctl
-- [ ] edge mutiple node
+- [x] deployctl
+- [ ] load balancer
+- [ ] edge mutiple regions
 - [ ] support NextJS
 - [ ] support Remix.run
 - [ ] support Astro
