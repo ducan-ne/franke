@@ -11,7 +11,7 @@ A dead simple serverless functions server, run at the edge.
 # Features
 - [x] edge single region
 - [x] support Hono
-- [x] deploy within seconds
+- [x] deploy to the edge within seconds
 - [x] traefik http provider
 - [x] deployctl
 - [ ] load balancer
