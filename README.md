@@ -12,6 +12,7 @@ A dead simple serverless functions server, run at the edge.
 - [x] edge single node
 - [x] support Hono
 - [x] deploy within seconds
+- [x] traefik http provider
 - [ ] deployctl
 - [ ] edge mutiple node
 - [ ] support NextJS
