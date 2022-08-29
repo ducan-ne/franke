@@ -19,3 +19,4 @@ A dead simple serverless functions server, run at the edge.
 - [ ] support NextJS
 - [ ] support Remix.run
 - [ ] support Astro
+- [ ] support wasm
