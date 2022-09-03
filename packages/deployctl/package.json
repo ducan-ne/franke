@@ -19,6 +19,7 @@
     "cac": "6.7.12",
     "conf": "10.2.0",
     "esbuild": "^0.15.5",
+    "fast-glob": "^3.2.11",
     "is-public-domain": "^2.0.0",
     "pretty-bytes": "^6.0.0",
     "read-pkg-up": "^9.1.0"

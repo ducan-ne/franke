@@ -11,11 +11,14 @@
     "@aws-sdk/client-s3": "^3.159.0",
     "@edge-runtime/primitives": "1.1.0-beta.31",
     "@edge-runtime/vm": "1.1.0-beta.31",
+    "@miniflare/kv": "^2.7.1",
+    "@miniflare/storage-memory": "^2.7.1",
     "@prisma/client": "^4.2.1",
     "axios": "0.27.2",
     "dotenv": "^16.0.1",
     "edge-runtime": "1.1.0-beta.31",
     "fastify": "4.5.3",
+    "mrmime": "^1.0.1",
     "redis": "^4.3.0"
   },
   "devDependencies": {

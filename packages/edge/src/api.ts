@@ -6,10 +6,14 @@ import {
   deployFunction,
   dispatchFetch,
   teardownFunction,
+  getDeployment,
 } from '@/vm'
 import { NodeHeaders } from 'edge-runtime/dist/types'
 import { Traefik } from '@/types'
 import axios from 'axios'
+import { lookup } from 'mrmime'
+import path from 'path'
+import { getAssetContent } from '@/files'
 
 const app = Fastify({})
 
@@ -36,7 +40,7 @@ app.register((api, opts, next) => {
 
   api.post<{
     Body: { name: string, code: string, assets: Array<{ content: string, name: string }>, domain: string },
-  }>('/deploy', async(req, reply) => {
+  }>('/deploy', async (req, reply) => {
     try {
       const { name, code, assets, domain } = req.body
 
@@ -85,7 +89,7 @@ app.register((api, opts, next) => {
         await s3.send(
           new PutObjectCommand({
             Bucket: process.env.S3_BUCKET,
-            Key: `${name}/${asset.name}`,
+            Key: path.join(name, asset.name),
             Body: asset.content,
           }),
         )
@@ -101,7 +105,7 @@ app.register((api, opts, next) => {
 
   api.post<{
     Params: { id: string }
-  }>('/stop/:id', async(req, reply) => {
+  }>('/stop/:id', async (req, reply) => {
     const func = await prisma.function.findFirstOrThrow({ where: { name: req.params.id } })
 
     teardownFunction(func.domain)
@@ -111,7 +115,7 @@ app.register((api, opts, next) => {
     reply.send({ success: true })
   })
 
-  api.get('/functions', async(req, reply) => {
+  api.get('/functions', async (req, reply) => {
     const records = await prisma.function.findMany()
     reply.send(records)
   })
@@ -119,7 +123,7 @@ app.register((api, opts, next) => {
   next()
 }, { prefix: 'edge-api' })
 
-app.get('/_webhooks/traefik', async(req, reply) => {
+app.get('/_webhooks/traefik', async (req, reply) => {
   const merge = { routers: {}, services: {} }
 
   if (process.env.TRAEFIK_MERGE) {
@@ -193,12 +197,8 @@ app.get('/_webhooks/traefik', async(req, reply) => {
   reply.send(traefik)
 })
 
-app.all('/*', async(req, reply) => {
+app.all('/*', async (req, reply) => {
   try {
-    if (req.url === '/favicon.ico') {
-      reply.code(204)
-      return
-    }
 
     const response = await dispatchFetch(req)
 

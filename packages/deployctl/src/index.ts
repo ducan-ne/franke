@@ -2,10 +2,12 @@ import cac from 'cac'
 import Conf from 'conf'
 import axios from 'axios'
 import path from 'path'
-import { readPackageUp } from 'read-pkg-up'
 import prettyBytes from 'pretty-bytes'
 import isDomain from 'is-public-domain'
+import { readPackageUp } from 'read-pkg-up'
+import glob from 'fast-glob'
 import { buildFunction } from './buildFunction'
+import * as fs from 'fs'
 
 const cli = cac('deployctl')
 
@@ -36,7 +38,7 @@ cli
 
 cli
   .command('deploy <target>')
-  .action(async(target) => {
+  .action(async (target) => {
     const pkg = await readPackageUp()
 
     if (!pkg) {
@@ -45,6 +47,7 @@ cli
     }
 
     const domain = pkg.packageJson?.franke?.domain
+    const bucket = pkg.packageJson?.franke?.bucket
     const functionName = pkg.packageJson?.franke?.name || pkg.packageJson.name
     if (!domain) {
       console.error('You must linked a domain to the function. Add it to package.json ->' +
@@ -72,17 +75,32 @@ cli
       return
     }
 
+    const assets: Array<{ name: string, content: string }> = []
+
+    let size = 0
+
+    if (bucket) {
+      const files = await glob(bucket + '/**/**', {
+        cwd: process.cwd(),
+      })
+
+      for (const file of files) {
+        const content = fs.readFileSync(file).toString()
+        assets.push({ name: file, content })
+        size += Buffer.byteLength(content)
+      }
+    }
+
     try {
       console.log('Deploying function', functionName)
       console.log('Domain', domain)
-      console.log('Function size: ', prettyBytes(Buffer.byteLength(code)))
+      console.log('Function size: ', prettyBytes(Buffer.byteLength(code) + size))
 
       await getApi().post('edge-api/deploy', {
         code: code,
         name: functionName,
         domain: domain,
-        // TODO assets
-        assets: [],
+        assets,
       })
       console.log(`Succeed deploy function ${functionName} to edge network`)
     } catch (e) {
@@ -101,7 +119,7 @@ cli
 
 cli
   .command('stop')
-  .action(async() => {
+  .action(async () => {
     const pkg = await readPackageUp()
 
     if (!pkg) {
@@ -128,7 +146,7 @@ cli
 
 cli
   .command('list')
-  .action(async() => {
+  .action(async () => {
     try {
 
       const { data } = await getApi().get('edge-api/functions')
