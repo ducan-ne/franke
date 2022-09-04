@@ -97,6 +97,7 @@ cli
       console.log('Function size: ', prettyBytes(Buffer.byteLength(code) + size))
 
       await getApi().post('edge-api/deploy', {
+        bucket,
         code: code,
         name: functionName,
         domain: domain,

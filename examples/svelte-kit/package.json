@@ -7,7 +7,8 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"deploy": "frankee-deployctl deploy ./.cloudflare/worker.js"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "next",
@@ -18,7 +19,16 @@
 		"svelte-preprocess": "^4.10.6",
 		"tslib": "^2.3.1",
 		"typescript": "^4.7.4",
-		"vite": "^3.1.0-beta.1"
+		"vite": "^3.1.0-beta.1",
+		"frankee-deployctl": "workspace:*"
 	},
-	"type": "module"
+	"type": "module",
+	"dependencies": {
+		"@sveltejs/adapter-cloudflare-workers": "1.0.0-next.54"
+	},
+	"franke": {
+		"name": "svelete-kit",
+		"bucket": "./.cloudflare/public",
+		"domain": "svelete-kit.graph.vn"
+	}
 }

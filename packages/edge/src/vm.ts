@@ -12,6 +12,7 @@ import { IncomingMessage } from 'http'
 import { createClient } from 'redis'
 import { KVNamespace } from '@miniflare/kv'
 import { MemoryStorage } from '@miniflare/storage-memory'
+import path from 'path'
 
 export type Deployment = {
   assets: Array<{ name: string }>
@@ -29,20 +30,20 @@ const streamToString = (stream: Readable) =>
     stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')))
   })
 
-const createRuntime = (code: string, files: KVNamespace) => {
+const createRuntime = (code: string, files: KVNamespace, filesObj: object) => {
   return new EdgeRuntime({
     initialCode: code,
     extend: context => {
       if (process.env.REDIS_URL) {
-        const redis = createClient({ url: process.env.REDIS_URL })
-        redis.on('error', (err) => console.log('Redis Client Error', err))
-
-        redis.connect()
-
-        context.Redis = redis
+        // const redis = createClient({ url: process.env.REDIS_URL })
+        // redis.on('error', (err) => console.log('Redis Client Error', err))
+        //
+        // redis.connect()
+        //
+        // context.Redis = redis
       }
       context.__STATIC_CONTENT = files
-      context.__STATIC_CONTENT_MANIFEST = {}
+      context.__STATIC_CONTENT_MANIFEST = JSON.stringify(filesObj)
       return context
     },
   })
@@ -54,6 +55,7 @@ export async function initializeFunctions() {
       assets: true,
       name: true,
       domain: true,
+      bucket: true,
     },
   })
 
@@ -68,7 +70,7 @@ export async function initializeFunctions() {
     const code = await streamToString(content.Body as Readable)
 
     const ns = new KVNamespace(new MemoryStorage())
-    await ns.put('key', 'value')
+    const filesObj: Record<string, string> = {}
 
     const assets = await s3.send(
       new ListObjectsV2Command({
@@ -86,13 +88,15 @@ export async function initializeFunctions() {
       )
 
       const assetContent = await streamToString(content.Body as Readable)
-      ns.put(asset.Key!.replace(`${func.name}/`, ''), assetContent)
+      const k = asset.Key!.replace(path.join(func.name, func.bucket) + '/', '')
+      ns.put(k, assetContent)
+      filesObj[k] = assetContent
     }
 
     deployments.set(func.domain, {
       name: func.name,
       assets: func.assets,
-      runtime: createRuntime(code, ns),
+      runtime: createRuntime(code, ns, filesObj),
     })
   }
 }
@@ -108,6 +112,7 @@ export async function deployFunction(id: string) {
       assets: true,
       name: true,
       domain: true,
+      bucket: true,
     },
   })
 
@@ -125,7 +130,7 @@ export async function deployFunction(id: string) {
   const code = await streamToString(content.Body as Readable)
 
   const ns = new KVNamespace(new MemoryStorage())
-  await ns.put('key', 'value')
+  const filesObj: Record<string, string> = {}
 
   const assets = await s3.send(
     new ListObjectsV2Command({
@@ -143,13 +148,15 @@ export async function deployFunction(id: string) {
     )
 
     const assetContent = await streamToString(content.Body as Readable)
-    ns.put(asset.Key!.replace(`${func.name}/`, ''), assetContent)
+    const k = asset.Key!.replace(path.join(func.name, func.bucket) + '/', '')
+    ns.put(k, assetContent)
+    filesObj[k] = assetContent
   }
 
   const deployment: Deployment = {
     name: func.name,
     assets: func.assets,
-    runtime: createRuntime(code, ns),
+    runtime: createRuntime(code, ns, filesObj),
   }
   deployments.set(func.domain, deployment)
 }
@@ -185,7 +192,7 @@ export async function dispatchFetch(req: FastifyRequest) {
   }) || false
 }
 
-function toRequestInitHeaders(req: IncomingMessage): RequestInit['headers'] {
+function toRequestInitHeaders(req: IncomingMessage): any {
   return Object.keys(req.headers).map((key) => {
     const value = req.headers[key]
     return [key, Array.isArray(value) ? value.join(', ') : value ?? '']

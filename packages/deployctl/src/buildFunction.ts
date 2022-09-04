@@ -1,10 +1,19 @@
 import { build } from 'esbuild'
+import external from 'esbuild-plugin-external-global'
 
 export function buildFunction(entry: string) {
   return build({
+    globalName: 'Franke',
+    footer: {
+      js: `
+        if (Franke.default.fetch) {
+          addEventListener('fetch', event => event.respondWith(Franke.default.fetch(event.request, {__STATIC_CONTENT: __STATIC_CONTENT}, event)))
+        }
+    `,
+    },
     entryPoints: [entry],
     bundle: true,
-    format: 'esm',
+    format: 'iife',
     target: 'esnext',
     write: false,
     loader: {
@@ -13,6 +22,7 @@ export function buildFunction(entry: string) {
     },
     minify: true,
     allowOverwrite: true,
+    external: ['__STATIC_CONTENT_MANIFEST'],
     plugins: [
       {
         name: 'notifier and monitor',
@@ -32,6 +42,9 @@ export function buildFunction(entry: string) {
           })
         },
       },
+      external.externalGlobalPlugin({
+        '__STATIC_CONTENT_MANIFEST': '__STATIC_CONTENT_MANIFEST',
+      }),
     ],
   })
 }

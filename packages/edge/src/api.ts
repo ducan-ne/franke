@@ -6,14 +6,11 @@ import {
   deployFunction,
   dispatchFetch,
   teardownFunction,
-  getDeployment,
 } from '@/vm'
 import { NodeHeaders } from 'edge-runtime/dist/types'
 import { Traefik } from '@/types'
 import axios from 'axios'
-import { lookup } from 'mrmime'
 import path from 'path'
-import { getAssetContent } from '@/files'
 
 const app = Fastify({})
 
@@ -39,10 +36,10 @@ app.register((api, opts, next) => {
   })
 
   api.post<{
-    Body: { name: string, code: string, assets: Array<{ content: string, name: string }>, domain: string },
+    Body: { name: string, code: string, assets: Array<{ content: string, name: string }>, domain: string, bucket: string },
   }>('/deploy', async (req, reply) => {
     try {
-      const { name, code, assets, domain } = req.body
+      const { name, code, assets, domain, bucket } = req.body
 
       const func = await prisma.function.upsert({
         where: {
@@ -50,6 +47,7 @@ app.register((api, opts, next) => {
         },
         update: {
           domain,
+          bucket,
           assets: {
             createMany: {
               data: assets.map(({ name }) => ({
@@ -61,6 +59,7 @@ app.register((api, opts, next) => {
         create: {
           name,
           domain,
+          bucket,
           assets: {
             createMany: {
               data: assets.map(({ name }) => ({
@@ -74,6 +73,7 @@ app.register((api, opts, next) => {
           createdAt: true,
           updatedAt: true,
           assets: true,
+          bucket: true
         },
       })
 

@@ -13,6 +13,7 @@ model Function {
   id        String   @id @default(cuid())
   name      String   @unique
   domain    String
+  bucket    String
   assets    Asset[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
